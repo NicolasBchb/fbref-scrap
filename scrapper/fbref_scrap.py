@@ -33,7 +33,6 @@ def merge(dict_df, on):
 # TODO: quid ligues avec peu de datas ?
 # TODO: travailler les classes pour optimiser leurs intéractions (for, attributs...)
 
-
 class League:
     def __init__(self, id, year):
         """
@@ -111,7 +110,6 @@ class League:
 # %%
 # !
 
-
 class Cup:
     def __init__(self):
         False
@@ -156,7 +154,8 @@ class Big5:
 
     def scrap_teams(self):
         self.teams = {}
-        self.ranking = pd.read_html(
+        self.teams_against = {}
+        self.teams["ranking"] = pd.read_html(
             f"https://fbref.com/fr/comps/Big5/{self.season}/Statistiques-Les-5-grands-championnats-europeens",
             skiprows=range(37, 10**6, 36),
         )[0].fillna(0)
@@ -166,8 +165,14 @@ class Big5:
                 f"https://fbref.com/fr/comps/Big5/{self.season}/{stat}/equipes/Statistiques-Les-5-grands-championnats-europeens",
                 # skiprows=range(27, 10**6, 26),
             )
-            for j, bis in enumerate(["", "_contre"]):
-                self.teams[stat + bis] = clean(dfs[i*2 + j])
+            for j in range(2):
+                if j == 0:
+                    self.teams[stat] = clean(dfs[i*2 + j])
+                else:
+                    self.teams_against[stat] = clean(dfs[i*2 + j])
+
+        self.teams_complete = merge(self.teams, "Équipe")
+        self.teams_against_complete = merge(self.teams_against, "Équipe")
 
     def scrap_players(self):
         self.players = {}
@@ -177,6 +182,8 @@ class Big5:
                 skiprows=range(27, 10**6, 26),
             )[0]
             self.players[stat] = clean(df)
+
+        self.players_complete = merge(self.players, "Joueur")
 
 
 # %%
